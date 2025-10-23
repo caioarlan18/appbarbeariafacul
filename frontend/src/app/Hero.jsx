@@ -31,8 +31,10 @@ export default function Hero() {
             <Text style={styles.txt}>BARBEARIA DE ELITE</Text>
             <Text style={styles.txt2}>experiências premium e cortes e masculinos</Text>
 
-            <Link href={"/Login"} style={styles.button}>
-                <Text style={styles.buttonText}>FAZER LOGIN</Text>
+            <Link href={"/Login"} asChild >
+                <TouchableOpacity style={styles.button}>
+                    <Text style={styles.buttonText}>FAZER LOGIN</Text>
+                </TouchableOpacity>
             </Link>
         </ImageBackground>
     );
@@ -69,7 +71,9 @@ const styles = StyleSheet.create({
         paddingVertical: 7,
         paddingHorizontal: 53,
         borderRadius: 10,
-        marginTop: 20
+        marginTop: 20,
+        justifyContent: "center",
+        alignItems: "center"
     },
     buttonText: {
         color: '#000',

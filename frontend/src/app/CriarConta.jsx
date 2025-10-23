@@ -3,9 +3,11 @@ import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-
 import { useState } from 'react';
 import { Link } from 'expo-router';
 
-export default function Login() {
+export default function CriarConta() {
+    const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+
     const [fontsLoaded] = useFonts({
         BigShoulders_400Regular,
         BigShoulders_700Bold,
@@ -14,7 +16,6 @@ export default function Login() {
     if (!fontsLoaded) {
         return null;
     }
-
     return (
         <ImageBackground
             source={require('../../images/madeira.png')}
@@ -30,9 +31,17 @@ export default function Login() {
 
                 <TextInput
                     style={styles.input}
+                    value={nome}
+                    onChangeText={setNome}
+                    placeholder="NOME :"
+                    placeholderTextColor="black"
+
+                />
+                <TextInput
+                    style={styles.input}
                     value={email}
                     onChangeText={setEmail}
-                    placeholder="E-MAIL :"
+                    placeholder="EMAIL :"
                     placeholderTextColor="black"
 
                 />
@@ -47,7 +56,7 @@ export default function Login() {
 
                 <Link href={"/"} asChild>
                     <TouchableOpacity style={styles.join}>
-                        <Text style={styles.joinText}>ENTRAR</Text>
+                        <Text style={styles.joinText}>CRIAR</Text>
                     </TouchableOpacity>
                 </Link>
                 <Text style={styles.ou}>OU ENTÃO:</Text>
@@ -57,9 +66,9 @@ export default function Login() {
                             <Text style={styles.buttonText}>VOLTAR</Text>
                         </TouchableOpacity>
                     </Link>
-                    <Link href={"/CriarConta"} asChild>
+                    <Link href={"/Login"} asChild>
                         <TouchableOpacity style={styles.button}>
-                            <Text style={styles.buttonText}>CRIAR CONTA</Text>
+                            <Text style={styles.buttonText}>LOGIN</Text>
                         </TouchableOpacity>
                     </Link>
 

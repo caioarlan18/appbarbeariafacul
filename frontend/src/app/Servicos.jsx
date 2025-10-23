@@ -1,16 +1,6 @@
-import {
-    ImageBackground,
-    StyleSheet,
-    Text,
-    View,
-    TouchableOpacity,
-    Image,
-} from 'react-native';
-import {
-    useFonts,
-    BigShoulders_400Regular,
-    BigShoulders_700Bold,
-} from '@expo-google-fonts/big-shoulders';
+import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, } from 'react-native';
+import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
+import { Link } from 'expo-router';
 export default function Servicos() {
     const [fontsLoaded] = useFonts({
         BigShoulders_400Regular,
@@ -35,9 +25,12 @@ export default function Servicos() {
                 />
                 <Text style={styles.txtservicos2}>OFERECEMOS UMA EXPERIENCIA COMPLETA COM PROFISSIONAIS QUALIFICADOS</Text>
                 <Text style={styles.price}>R$ 45,00</Text>
-                <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>AGENDE AGORA</Text>
-                </TouchableOpacity>
+                <Link href={"/"} asChild>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>AGENDE AGORA</Text>
+                    </TouchableOpacity>
+                </Link>
+
             </View>
             <View style={styles.servicos}>
                 <Text style={styles.txtservicos}>BARBA & BIGODE</Text>
@@ -48,9 +41,11 @@ export default function Servicos() {
                 />
                 <Text style={styles.txtservicos2}>APARAR MODELAR E TRATAR SUA BARBA COM EFICIENCIA</Text>
                 <Text style={styles.price}>R$ 55,00</Text>
-                <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>AGENDE AGORA</Text>
-                </TouchableOpacity>
+                <Link href={"/"} asChild>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>AGENDE AGORA</Text>
+                    </TouchableOpacity>
+                </Link>
             </View>
             <View style={styles.servicos}>
                 <Text style={styles.txtservicos}>COMBO COMPLETO</Text>
@@ -61,9 +56,11 @@ export default function Servicos() {
                 />
                 <Text style={styles.txtservicos2}>CORTE & BARBA & ACABAMENTO COM PERFEIÇÃO</Text>
                 <Text style={styles.price}>R$ 70,00</Text>
-                <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>AGENDE AGORA</Text>
-                </TouchableOpacity>
+                <Link href={"/"} asChild>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>AGENDE AGORA</Text>
+                    </TouchableOpacity>
+                </Link>
             </View>
 
         </View>
@@ -107,7 +104,9 @@ const styles = StyleSheet.create({
         paddingVertical: 7,
         paddingHorizontal: 53,
         borderRadius: 10,
-        marginTop: 20
+        marginTop: 20,
+        justifyContent: "center",
+        alignItems: "center"
     },
     buttonText: {
         color: 'white',
