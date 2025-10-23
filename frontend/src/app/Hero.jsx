@@ -1,18 +1,7 @@
-import {
-    ImageBackground,
-    StyleSheet,
-    Text,
-    View,
-    TouchableOpacity,
-    Image,
-} from 'react-native';
-import {
-    useFonts,
-    BigShoulders_400Regular,
-    BigShoulders_700Bold,
-} from '@expo-google-fonts/big-shoulders';
-
-export function Home() {
+import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, } from 'react-native';
+import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
+import { Link } from 'expo-router';
+export default function Hero() {
     const [fontsLoaded] = useFonts({
         BigShoulders_400Regular,
         BigShoulders_700Bold,
@@ -42,10 +31,9 @@ export function Home() {
             <Text style={styles.txt}>BARBEARIA DE ELITE</Text>
             <Text style={styles.txt2}>experiências premium e cortes e masculinos</Text>
 
-            <TouchableOpacity style={styles.button}>
+            <Link href={"/Login"} style={styles.button}>
                 <Text style={styles.buttonText}>FAZER LOGIN</Text>
-            </TouchableOpacity>
-
+            </Link>
         </ImageBackground>
     );
 }
