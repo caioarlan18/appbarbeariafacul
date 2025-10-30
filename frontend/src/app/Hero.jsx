@@ -1,7 +1,20 @@
 import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, } from 'react-native';
 import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
+
 export default function Hero() {
+    const [token, setToken] = useState("");
+    const [cargo, setCargo] = useState("");
+    useEffect(() => {
+        async function carregarToken() {
+            setToken(await AsyncStorage.getItem("token"));
+            setCargo(await AsyncStorage.getItem("cargo"));
+        }
+        carregarToken();
+
+    }, [])
     const [fontsLoaded] = useFonts({
         BigShoulders_400Regular,
         BigShoulders_700Bold,
@@ -15,7 +28,7 @@ export default function Hero() {
 
         <ImageBackground
             source={require('../../images/bghome.png')}
-            style={styles.imgbackground}
+            style={cargo === 'admin' ? styles.imgbackground2 : styles.imgbackground}
             resizeMode="cover"
         >
             <Image
@@ -31,11 +44,12 @@ export default function Hero() {
             <Text style={styles.txt}>BARBEARIA DE ELITE</Text>
             <Text style={styles.txt2}>experiências premium e cortes e masculinos</Text>
 
-            <Link href={"/Login"} asChild >
+            <Link href={token && cargo === "user" ? "/Agendar" : token && cargo === "admin" ? "/PainelAdmin" : "/Login"} asChild >
                 <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>FAZER LOGIN</Text>
+                    <Text style={styles.buttonText}>{token && cargo === "user" ? "AGENDAR" : token && cargo === "admin" ? "PAINEL ADMIN" : "FAZER LOGIN"}</Text>
                 </TouchableOpacity>
             </Link>
+
         </ImageBackground>
     );
 }
@@ -46,6 +60,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 150
+    },
+    imgbackground2: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+
     },
     logo: {
         width: 200,

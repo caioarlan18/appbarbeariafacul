@@ -1,7 +1,8 @@
-import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, TextInput } from 'react-native';
-import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
-import { useState } from 'react';
-import { Link } from 'expo-router';
+import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold } from '@expo-google-fonts/big-shoulders';
+import { useState, useEffect } from 'react';
+import { Link, router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -14,6 +15,29 @@ export default function Login() {
     if (!fontsLoaded) {
         return null;
     }
+
+    async function entrar() {
+        if (!email || !senha) return alert("Preencha todos os campos!");
+        try {
+            const response = await fetch("https://n8n.punchmarketing.com.br/webhook/login-barberfacul", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, senha }),
+            })
+            const data = await response.json();
+            if (data.status === "ok") {
+                await AsyncStorage.setItem("token", data.token);
+                await AsyncStorage.setItem("cargo", data.cargo);
+            };
+            setEmail("");
+            setSenha("");
+            router.navigate("/")
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
 
     return (
         <ImageBackground
@@ -34,7 +58,8 @@ export default function Login() {
                     onChangeText={setEmail}
                     placeholder="E-MAIL :"
                     placeholderTextColor="black"
-
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                 />
                 <TextInput
                     style={styles.input}
@@ -42,33 +67,33 @@ export default function Login() {
                     onChangeText={setSenha}
                     placeholder="SENHA :"
                     placeholderTextColor="black"
-
+                    secureTextEntry
                 />
 
-                <Link href={"/"} asChild>
-                    <TouchableOpacity style={styles.join}>
-                        <Text style={styles.joinText}>ENTRAR</Text>
-                    </TouchableOpacity>
-                </Link>
+                <TouchableOpacity style={styles.join} onPress={entrar} >
+                    <Text style={styles.joinText}>ENTRAR</Text>
+                </TouchableOpacity>
+
                 <Text style={styles.ou}>OU ENTÃO:</Text>
+
                 <View style={styles.login2}>
                     <Link href={"/"} asChild>
                         <TouchableOpacity style={styles.button}>
                             <Text style={styles.buttonText}>VOLTAR</Text>
                         </TouchableOpacity>
                     </Link>
+
                     <Link href={"/CriarConta"} asChild>
                         <TouchableOpacity style={styles.button}>
                             <Text style={styles.buttonText}>CRIAR CONTA</Text>
                         </TouchableOpacity>
                     </Link>
-
                 </View>
             </View>
-
         </ImageBackground>
-    )
+    );
 }
+
 const styles = StyleSheet.create({
     imgbackground: {
         width: '100%',
@@ -81,7 +106,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         width: "70%",
-
     },
     login2: {
         flexDirection: 'row',
@@ -124,7 +148,6 @@ const styles = StyleSheet.create({
         width: "100%",
         justifyContent: "center",
         alignItems: "center"
-
     },
     joinText: {
         color: '#000',
@@ -135,8 +158,5 @@ const styles = StyleSheet.create({
         fontFamily: 'BigShoulders_400Regular',
         color: "white",
         fontSize: 18,
-
     }
-
-
 });

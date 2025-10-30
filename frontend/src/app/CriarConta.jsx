@@ -1,7 +1,7 @@
 import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, TextInput } from 'react-native';
 import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
 import { useState } from 'react';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 
 export default function CriarConta() {
     const [nome, setNome] = useState("");
@@ -15,6 +15,30 @@ export default function CriarConta() {
 
     if (!fontsLoaded) {
         return null;
+    }
+
+    async function criar() {
+        if (!nome || !email || !senha) return alert("Preencha todos os campos!");
+        if (email.length < 8 || !email.includes("@")) return alert("Coloque um email válido");
+        if (senha.length < 6) return alert("Coloque uma senha segura");
+
+        try {
+            const response = await fetch("https://n8n.punchmarketing.com.br/webhook/criarconta-barberfacul", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, email, senha, cargo: "user" }),
+            })
+            const data = await response.json();
+            alert(data.mensagem);
+            setNome("");
+            setEmail("");
+            setSenha("");
+
+        } catch (error) {
+            console.log(error)
+        }
+
+
     }
     return (
         <ImageBackground
@@ -54,11 +78,11 @@ export default function CriarConta() {
 
                 />
 
-                <Link href={"/"} asChild>
-                    <TouchableOpacity style={styles.join}>
-                        <Text style={styles.joinText}>CRIAR</Text>
-                    </TouchableOpacity>
-                </Link>
+
+                <TouchableOpacity style={styles.join} onPress={criar}>
+                    <Text style={styles.joinText}>CRIAR</Text>
+                </TouchableOpacity>
+
                 <Text style={styles.ou}>OU ENTÃO:</Text>
                 <View style={styles.login2}>
                     <Link href={"/"} asChild>
