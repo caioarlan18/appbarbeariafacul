@@ -3,6 +3,7 @@ import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-
 import { Link, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
 
 export default function Hero() {
     const [token, setToken] = useState("");
@@ -49,6 +50,7 @@ export default function Hero() {
                     <Text style={styles.buttonText}>{token && cargo === "user" ? "AGENDAR" : token && cargo === "admin" ? "PAINEL ADMIN" : "FAZER LOGIN"}</Text>
                 </TouchableOpacity>
             </Link>
+            <StatusBar style="light" />
 
         </ImageBackground>
     );

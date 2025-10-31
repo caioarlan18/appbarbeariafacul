@@ -1,7 +1,17 @@
 import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, } from 'react-native';
 import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
 import { Link } from 'expo-router';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export default function Servicos() {
+    const [token, setToken] = useState("");
+    useEffect(() => {
+        async function carregarToken() {
+            setToken(await AsyncStorage.getItem("token"));
+        }
+        carregarToken();
+    }, [token])
     const [fontsLoaded] = useFonts({
         BigShoulders_400Regular,
         BigShoulders_700Bold,
@@ -25,7 +35,7 @@ export default function Servicos() {
                 />
                 <Text style={styles.txtservicos2}>OFERECEMOS UMA EXPERIENCIA COMPLETA COM PROFISSIONAIS QUALIFICADOS</Text>
                 <Text style={styles.price}>R$ 45,00</Text>
-                <Link href={"/"} asChild>
+                <Link href={token ? "/Agendar" : "/Login"} asChild>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>AGENDE AGORA</Text>
                     </TouchableOpacity>
@@ -41,7 +51,7 @@ export default function Servicos() {
                 />
                 <Text style={styles.txtservicos2}>APARAR MODELAR E TRATAR SUA BARBA COM EFICIENCIA</Text>
                 <Text style={styles.price}>R$ 55,00</Text>
-                <Link href={"/"} asChild>
+                <Link href={token ? "/Agendar" : "/Login"} asChild>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>AGENDE AGORA</Text>
                     </TouchableOpacity>
@@ -56,7 +66,7 @@ export default function Servicos() {
                 />
                 <Text style={styles.txtservicos2}>CORTE & BARBA & ACABAMENTO COM PERFEIÇÃO</Text>
                 <Text style={styles.price}>R$ 70,00</Text>
-                <Link href={"/"} asChild>
+                <Link href={token ? "/Agendar" : "/Login"} asChild>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>AGENDE AGORA</Text>
                     </TouchableOpacity>
@@ -74,7 +84,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
         padding: 40,
-        gap: 30
+        gap: 30,
     },
     servicos: {
         backgroundColor: "white",

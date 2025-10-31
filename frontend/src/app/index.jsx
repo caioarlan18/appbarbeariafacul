@@ -27,7 +27,7 @@ export default function Index() {
                 </ScrollView>
                 : <View style={styles.container2}>
                     <Hero />
-                    <StatusBar style="auto" />
+
                 </View>
 
             }

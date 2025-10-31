@@ -3,6 +3,7 @@ import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold } from '@expo-g
 import { useState, useEffect } from 'react';
 import { Link, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StatusBar } from 'expo-status-bar';
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -90,6 +91,8 @@ export default function Login() {
                     </Link>
                 </View>
             </View>
+            <StatusBar style="light" />
+
         </ImageBackground>
     );
 }

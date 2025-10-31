@@ -2,6 +2,7 @@ import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, TextI
 import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
 import { useState } from 'react';
 import { Link, router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 export default function CriarConta() {
     const [nome, setNome] = useState("");
@@ -98,6 +99,7 @@ export default function CriarConta() {
 
                 </View>
             </View>
+            <StatusBar style="light" />
 
         </ImageBackground>
     )

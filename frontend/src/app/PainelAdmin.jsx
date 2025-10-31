@@ -3,18 +3,36 @@ import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-
 import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StatusBar } from 'expo-status-bar';
 export default function PainelAdmin() {
     const [token, setToken] = useState("");
     const [cargo, setCargo] = useState("");
+    const [user, setUser] = useState([]);
     useEffect(() => {
         async function carregarToken() {
             setToken(await AsyncStorage.getItem("token"));
             setCargo(await AsyncStorage.getItem("cargo"));
+
         }
         carregarToken();
-
     }, [cargo])
-
+    useEffect(() => {
+        async function getUser() {
+            if (!token) return;
+            try {
+                const response = await fetch("https://n8n.punchmarketing.com.br/webhook/getuser", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token }),
+                })
+                const data = await response.json();
+                setUser(data);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getUser()
+    }, [token])
 
     async function deslogar() {
         await AsyncStorage.clear();
@@ -30,20 +48,23 @@ export default function PainelAdmin() {
     }
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView >
 
             <View style={styles.container}>
                 <View style={styles.servicos}>
-                    <Text style={styles.txtservicos}>PAINEL ADMINSTRATIVO</Text>
-                    <Text style={styles.txtservicos2}>VEJA OS CORTES QUE FORAM AGENDADOS</Text>
-                    <Link href={"/"} asChild>
-                        <TouchableOpacity style={styles.button}>
-                            <Text style={styles.buttonText}>HOME</Text>
+                    <Text style={styles.txtservicos}>OLÁ {user && user.nome}!</Text>
+                    <Text style={styles.txtservicos2}>VEJA OS CORTES QUE FORAM AGENDADOS NO SEU PAINEL ADMINISTRATIVO</Text>
+                    <View style={styles.btts}>
+                        <Link href={"/"} asChild>
+                            <TouchableOpacity style={styles.button}>
+                                <Text style={styles.buttonText}>HOME</Text>
+                            </TouchableOpacity>
+                        </Link>
+                        <TouchableOpacity style={styles.button} onPress={deslogar}>
+                            <Text style={styles.buttonText}>DESLOGAR</Text>
                         </TouchableOpacity>
-                    </Link>
-                    <TouchableOpacity style={styles.button} onPress={deslogar}>
-                        <Text style={styles.buttonText}>DESLOGAR</Text>
-                    </TouchableOpacity>
+                    </View>
+
                 </View>
                 <View style={styles.servicos}>
                     <Text style={styles.txtservicos}>CORTES BASICOS</Text>
@@ -61,10 +82,9 @@ export default function PainelAdmin() {
                     </Link>
 
                 </View>
-
-
-
             </View>
+            <StatusBar style="auto" />
+
         </ScrollView>
 
     )
@@ -74,9 +94,15 @@ const styles = StyleSheet.create({
         backgroundColor: "#5d5d5d",
         width: "100%",
         height: "100%",
-        paddingHorizontal: 20,
-        paddingVertical: 40,
+        paddingHorizontal: 30,
+        paddingVertical: 70,
         gap: 30,
+        flex: 1
+    },
+    btts: {
+        flexDirection: 'row',
+        gap: 5,
+        flex: 1
     },
     servicos: {
         backgroundColor: "white",
@@ -91,7 +117,8 @@ const styles = StyleSheet.create({
     txtservicos: {
         fontFamily: 'BigShoulders_400Regular',
         fontSize: 44,
-        textAlign: "center"
+        textAlign: "center",
+
     },
     txtservicos2: {
         fontFamily: 'BigShoulders_400Regular',
@@ -116,5 +143,5 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontFamily: 'BigShoulders_400Regular',
-    },
+    }
 })
