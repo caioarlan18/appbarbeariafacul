@@ -34,8 +34,8 @@ export default function Servicos() {
                     resizeMode="contain"
                 />
                 <Text style={styles.txtservicos2}>OFERECEMOS UMA EXPERIENCIA COMPLETA COM PROFISSIONAIS QUALIFICADOS</Text>
-                <Text style={styles.price}>R$ 45,00</Text>
-                <Link href={token ? "/Agendar" : "/Login"} asChild>
+                <Text style={styles.price}>R$ 35,00</Text>
+                <Link href={{ pathname: token ? "/Agendar" : "/Login", params: { preservice: "corte" } }} asChild>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>AGENDE AGORA</Text>
                     </TouchableOpacity>
@@ -50,8 +50,8 @@ export default function Servicos() {
                     resizeMode="contain"
                 />
                 <Text style={styles.txtservicos2}>APARAR MODELAR E TRATAR SUA BARBA COM EFICIENCIA</Text>
-                <Text style={styles.price}>R$ 55,00</Text>
-                <Link href={token ? "/Agendar" : "/Login"} asChild>
+                <Text style={styles.price}>R$ 30,00</Text>
+                <Link href={{ pathname: token ? "/Agendar" : "/Login", params: { preservice: "barba" } }} asChild>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>AGENDE AGORA</Text>
                     </TouchableOpacity>
@@ -65,8 +65,8 @@ export default function Servicos() {
                     resizeMode="contain"
                 />
                 <Text style={styles.txtservicos2}>CORTE & BARBA & ACABAMENTO COM PERFEIÇÃO</Text>
-                <Text style={styles.price}>R$ 70,00</Text>
-                <Link href={token ? "/Agendar" : "/Login"} asChild>
+                <Text style={styles.price}>R$ 50,00</Text>
+                <Link href={{ pathname: token ? "/Agendar" : "/Login", params: { preservice: "combo" } }} asChild>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>AGENDE AGORA</Text>
                     </TouchableOpacity>

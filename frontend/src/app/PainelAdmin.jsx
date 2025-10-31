@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: "#5d5d5d",
         width: "100%",
-        height: "100%",
+        minHeight: "100%",
         paddingHorizontal: 30,
         paddingVertical: 70,
         gap: 30,
