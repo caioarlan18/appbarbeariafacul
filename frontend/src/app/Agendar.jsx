@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { ptBR } from '../utils/localeCalendarConfig';
 import { initDB, salvarAgendamentoLocal, buscarPendentes, marcarComoEnviado } from '../services/database';
+import MaskInput from 'react-native-mask-input';
 import NetInfo from '@react-native-community/netinfo';
 LocaleConfig.locales['pt-br'] = ptBR;
 LocaleConfig.defaultLocale = 'pt-br';
@@ -309,13 +310,15 @@ export default function Agendar() {
                     ) : step === 3 ? (
                         <>
                             <Text style={styles.txtservicos}>NÚMERO DE TELEFONE</Text>
-                            <TextInput
-                                style={styles.input}
+                            <MaskInput
                                 value={telefone}
-                                onChangeText={setTelefone}
-                                placeholder='EX: 22 999999999'
-                                placeholderTextColor='black'
-                                keyboardType='phone-pad'
+                                onChangeText={(masked, unmasked) => {
+                                    setTelefone(unmasked);
+                                }}
+                                mask={['(', /\d/, /\d/, ')', ' ', /\d/, /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                keyboardType="numeric"
+                                placeholder="(99) 99999-9999"
+                                style={styles.input}
                             />
                         </>
                     ) : null}
@@ -447,12 +450,12 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     btthr: {
-        backgroundColor: '#5d5d5d',
+        backgroundColor: '#A0AEC0',
         padding: 10,
         borderRadius: 5,
     },
     btthrocupado: {
-        backgroundColor: '#e53935',
+        backgroundColor: '#F56565',
     },
     txtOcupado: {
         color: '#fff',
