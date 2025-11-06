@@ -24,7 +24,7 @@ export default function Agendar() {
     const [horario, setHorario] = useState('');
     const [ocupados, setOcupados] = useState([]);
     const [markedDate, setMarkedDate] = useState('');
-
+    const [myservices, setMyservices] = useState([]);
     const isSyncing = useRef(false);
 
     useEffect(() => {
@@ -37,7 +37,7 @@ export default function Agendar() {
             setCargo(await AsyncStorage.getItem('cargo'));
         }
         carregarToken();
-    }, [cargo]);
+    }, [token]);
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(async (state) => {
@@ -49,6 +49,21 @@ export default function Agendar() {
         });
         return () => unsubscribe();
     }, []);
+    useEffect(() => {
+        async function getMyServices() {
+            if (!token) return;
+            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/myservices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "token": token }),
+            });
+            const data = await response.json();
+
+            setMyservices(data.status === "ok" && data.myservices);
+            console.log(data.status === "ok" && data.myservices)
+        }
+        getMyServices();
+    }, [token])
 
     async function sincronizarPendentes() {
         try {
@@ -345,6 +360,22 @@ export default function Agendar() {
                         </TouchableOpacity>
                     </View>
                 </View>
+                {
+                    myservices ?
+                        <View style={styles.myservices} >
+                            <Text style={styles.txtservicos}>MEUS AGENDAMENTOS</Text>
+                            {myservices.map((item, index) => (
+                                <View style={styles.myservices1} key={index}>
+                                    <Text style={styles.txtservicos2}>{item.data}</Text>
+                                </View>
+                            ))}
+                        </View>
+                        :
+                        <View style={styles.myservices}>
+                            <Text style={styles.txtservicos}>VOCÊ NÃO TEM AGENDAMENTOS</Text>
+                        </View>
+                }
+
             </View>
             <StatusBar style='auto' />
         </ScrollView>
@@ -466,5 +497,27 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e0e0e0',
         borderRadius: 6,
+    },
+    myservices: {
+        backgroundColor: 'white',
+        paddingVertical: 22,
+        paddingHorizontal: 13,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 20,
+        borderRadius: 10,
+    },
+    myservices1: {
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+        width: '70%',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
     }
 });
