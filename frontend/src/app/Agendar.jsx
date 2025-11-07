@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold } from '@expo-google-fonts/big-shoulders';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
@@ -26,7 +26,7 @@ export default function Agendar() {
     const [markedDate, setMarkedDate] = useState('');
     const [myservices, setMyservices] = useState([]);
     const isSyncing = useRef(false);
-
+    const [updateMyServices, setUpdateMyServices] = useState(false);
     useEffect(() => {
         initDB();
     }, []);
@@ -52,18 +52,22 @@ export default function Agendar() {
     useEffect(() => {
         async function getMyServices() {
             if (!token) return;
-            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/myservices', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ "token": token }),
-            });
-            const data = await response.json();
+            try {
+                const response = await fetch('https://n8n.punchmarketing.com.br/webhook/myservices', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "token": token }),
+                });
+                const data = await response.json();
 
-            setMyservices(data.status === "ok" && data.myservices);
-            console.log(data.status === "ok" && data.myservices)
+                setMyservices(data.status === "ok" && data.myservices.reverse());
+            } catch (error) {
+                console.log(error)
+            }
+
         }
         getMyServices();
-    }, [token])
+    }, [token, updateMyServices])
 
     async function sincronizarPendentes() {
         try {
@@ -189,16 +193,9 @@ export default function Agendar() {
                 });
 
                 const responseText = await response.text();
+                const data = JSON.parse(responseText);
+                alert(data.mensagem);
 
-                if (response.ok && responseText) {
-                    const data = JSON.parse(responseText);
-                    alert(data.mensagem);
-                } else if (response.ok) {
-                    alert('Agendamento enviado com sucesso!');
-                } else {
-                    console.log('Erro do servidor ao marcar:', response.status, responseText);
-                    throw new Error('Erro do servidor');
-                }
 
             } catch (error) {
                 console.log('Erro ao enviar online, salvando local:', error);
@@ -216,6 +213,8 @@ export default function Agendar() {
         setHorario('');
         setTelefone('');
         setMarkedDate('');
+        setUpdateMyServices(!updateMyServices);
+
     }
 
     async function buscarOcupados(day) {
@@ -245,6 +244,19 @@ export default function Agendar() {
         } catch (error) {
             console.log('Erro ao buscar horários:', error);
             setOcupados([]);
+        }
+    }
+    async function desmarcar(dia, id) {
+        try {
+            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/desmarcar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "data": dia, "token": id, "aviso": false }),
+            });
+            const data = await response.json();
+            setUpdateMyServices(!updateMyServices);
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -362,16 +374,21 @@ export default function Agendar() {
                 </View>
                 {
                     myservices ?
-                        <View style={styles.myservices} >
+                        <View style={styles.myagenda} >
                             <Text style={styles.txtservicos}>MEUS AGENDAMENTOS</Text>
                             {myservices.map((item, index) => (
-                                <View style={styles.myservices1} key={index}>
-                                    <Text style={styles.txtservicos2}>{item.data}</Text>
+                                <View style={styles.myagenda1} key={index}>
+                                    <Text style={styles.txttipo}>{item.servico.toUpperCase()}</Text>
+                                    <Text style={styles.txtagenda}>DATA: {item.data}</Text>
+                                    <Text style={styles.txtagenda}>PREÇO: R${item.preco}</Text>
+                                    <TouchableOpacity style={styles.buttonCancel} onPress={() => desmarcar(item.data, item.id_cliente)}>
+                                        <Text style={styles.buttonText}>DESMARCAR</Text>
+                                    </TouchableOpacity>
                                 </View>
                             ))}
                         </View>
                         :
-                        <View style={styles.myservices}>
+                        <View style={styles.myagenda}>
                             <Text style={styles.txtservicos}>VOCÊ NÃO TEM AGENDAMENTOS</Text>
                         </View>
                 }
@@ -410,6 +427,11 @@ const styles = StyleSheet.create({
         fontSize: 44,
         textAlign: 'center',
     },
+    txttipo: {
+        fontFamily: 'BigShoulders_400Regular',
+        fontSize: 38,
+        textAlign: 'center',
+    },
     txtservicos2: {
         fontFamily: 'BigShoulders_400Regular',
         fontSize: 16,
@@ -419,6 +441,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#0170b9',
         paddingVertical: 7,
         paddingHorizontal: 40,
+        borderRadius: 10,
+        marginTop: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    buttonCancel: {
+        backgroundColor: '#F56565',
+        paddingVertical: 5,
+        paddingHorizontal: 30,
         borderRadius: 10,
         marginTop: 10,
         justifyContent: 'center',
@@ -498,7 +529,7 @@ const styles = StyleSheet.create({
         borderColor: '#e0e0e0',
         borderRadius: 6,
     },
-    myservices: {
+    myagenda: {
         backgroundColor: 'white',
         paddingVertical: 22,
         paddingHorizontal: 13,
@@ -507,17 +538,23 @@ const styles = StyleSheet.create({
         gap: 20,
         borderRadius: 10,
     },
-    myservices1: {
+    myagenda1: {
         backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 10,
-        width: '70%',
+        padding: 20,
+        width: '90%',
         borderRadius: 10,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.1,
         shadowRadius: 6,
         elevation: 6,
+        gap: 10
+    },
+    txtagenda: {
+        fontFamily: 'BigShoulders_400Regular',
+        fontSize: 18,
+        textAlign: 'center',
     }
 });

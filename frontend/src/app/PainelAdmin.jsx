@@ -1,13 +1,19 @@
-import { ImageBackground, StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useFonts, BigShoulders_400Regular, BigShoulders_700Bold, } from '@expo-google-fonts/big-shoulders';
 import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
+
 export default function PainelAdmin() {
     const [token, setToken] = useState("");
     const [cargo, setCargo] = useState("");
     const [user, setUser] = useState([]);
+    const [agendamentos, setAgendamentos] = useState([]);
+    const [allusers, setAllusers] = useState([]);
+    const [updateMyServices, setUpdateMyServices] = useState(false);
+    const [motivo, setMotivo] = useState("");
+    const [motivoVisible, setMotivoVisible] = useState("");
     useEffect(() => {
         async function carregarToken() {
             setToken(await AsyncStorage.getItem("token"));
@@ -15,7 +21,7 @@ export default function PainelAdmin() {
 
         }
         carregarToken();
-    }, [cargo])
+    }, [token])
     useEffect(() => {
         async function getUser() {
             if (!token) return;
@@ -32,6 +38,33 @@ export default function PainelAdmin() {
             }
         }
         getUser()
+    }, [token]);
+    useEffect(() => {
+        async function getAgendamentos() {
+            if (!token) return;
+            try {
+                const response = await fetch("https://n8n.punchmarketing.com.br/webhook/agendamentos");
+                const data = await response.json();
+                setAgendamentos(data.status === "ok" && data.agendamentos);
+            } catch (error) {
+                console.log(error)
+            }
+
+        }
+        getAgendamentos();
+    }, [token, updateMyServices]);
+    useEffect(() => {
+        async function getAllUsers() {
+            if (!token) return;
+            try {
+                const response = await fetch("https://n8n.punchmarketing.com.br/webhook/allusers");
+                const data = await response.json();
+                setAllusers(data.status === "ok" && data.users);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getAllUsers()
     }, [token])
 
     async function deslogar() {
@@ -42,7 +75,22 @@ export default function PainelAdmin() {
         BigShoulders_400Regular,
         BigShoulders_700Bold,
     });
-
+    async function desmarcar(dia, id) {
+        if (motivoVisible !== id) return setMotivoVisible(id);
+        if (!motivo) return alert("Dê uma satisfação para o cliente");
+        try {
+            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/desmarcar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "data": dia, "token": id, "aviso": true, "motivo": motivo }),
+            });
+            const data = await response.json();
+            setUpdateMyServices(!updateMyServices);
+            setMotivo("");
+        } catch (error) {
+            console.log(error);
+        }
+    }
     if (!fontsLoaded) {
         return null;
     }
@@ -66,22 +114,38 @@ export default function PainelAdmin() {
                     </View>
 
                 </View>
-                <View style={styles.servicos}>
-                    <Text style={styles.txtservicos}>CORTES BASICOS</Text>
-                    <Image
-                        source={require('../../images/tesourinhapreto.png')}
-                        style={styles.tesourinha}
-                        resizeMode="contain"
-                    />
-                    <Text style={styles.txtservicos2}>OFERECEMOS UMA EXPERIENCIA COMPLETA COM PROFISSIONAIS QUALIFICADOS</Text>
-                    <Text style={styles.price}>R$ 45,00</Text>
-                    <Link href={"/"} asChild>
-                        <TouchableOpacity style={styles.button}>
-                            <Text style={styles.buttonText}>AGENDE AGORA</Text>
-                        </TouchableOpacity>
-                    </Link>
+                {
+                    agendamentos ?
+                        <View style={styles.myagenda} >
+                            <Text style={styles.txtservicos}>AGENDAMENTOS</Text>
+                            {agendamentos.map((item, index) => (
+                                <View style={styles.myagenda1} key={index}>
+                                    <Text style={styles.txttipo}>{allusers.find((i) => i.token === item.id_cliente)?.nome}</Text>
+                                    <Text style={styles.txtagenda}>DATA: {item.data}</Text>
+                                    <Text style={styles.txtagenda}>NÚMERO: {item.telefone}</Text>
+                                    <Text style={styles.txtagenda}>PREÇO: R${item.preco}</Text>
+                                    {motivoVisible === item.id_cliente &&
+                                        <TextInput
+                                            style={styles.input}
+                                            value={motivo}
+                                            onChangeText={setMotivo}
+                                            placeholder="MOTIVO DO CANCELAMENTO"
+                                            placeholderTextColor="black"
+                                            autoCapitalize="none"
+                                        />
+                                    }
 
-                </View>
+                                    <TouchableOpacity style={styles.buttonCancel} onPress={() => desmarcar(item.data, item.id_cliente)}>
+                                        <Text style={styles.buttonText}>DESMARCAR</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
+                        </View>
+                        :
+                        <View style={styles.myagenda}>
+                            <Text style={styles.txtservicos}>NENHUM AGENDAMENTO</Text>
+                        </View>
+                }
             </View>
             <StatusBar style="auto" />
 
@@ -104,6 +168,18 @@ const styles = StyleSheet.create({
         gap: 5,
         flex: 1
     },
+    input: {
+        width: '100%',
+        height: 50,
+        backgroundColor: '#fff',
+        borderRadius: 9,
+        paddingHorizontal: 16,
+        fontSize: 16,
+        fontFamily: 'BigShoulders_400Regular',
+        borderColor: "black",
+        borderWidth: 1,
+        borderStyle: "solid",
+    },
     servicos: {
         backgroundColor: "white",
         paddingVertical: 22,
@@ -125,6 +201,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: "center"
     },
+    txttipo: {
+        fontFamily: 'BigShoulders_400Regular',
+        fontSize: 38,
+        textAlign: 'center',
+    },
     price: {
         fontFamily: 'BigShoulders_700Bold',
         fontSize: 31,
@@ -143,5 +224,42 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontFamily: 'BigShoulders_400Regular',
-    }
+    },
+    myagenda: {
+        backgroundColor: 'white',
+        paddingVertical: 22,
+        paddingHorizontal: 13,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 20,
+        borderRadius: 10,
+    },
+    myagenda1: {
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        width: '90%',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+        gap: 10
+    },
+    txtagenda: {
+        fontFamily: 'BigShoulders_400Regular',
+        fontSize: 18,
+        textAlign: 'center',
+    },
+    buttonCancel: {
+        backgroundColor: '#F56565',
+        paddingVertical: 5,
+        paddingHorizontal: 30,
+        borderRadius: 10,
+        marginTop: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 })
