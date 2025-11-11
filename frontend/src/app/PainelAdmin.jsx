@@ -14,6 +14,16 @@ export default function PainelAdmin() {
     const [updateMyServices, setUpdateMyServices] = useState(false);
     const [motivo, setMotivo] = useState("");
     const [motivoVisible, setMotivoVisible] = useState("");
+    const [produtos, setProdutos] = useState([]);
+    const [nomeProduto, setNomeProduto] = useState("");
+    const [productVisible, setProductVisible] = useState(false);
+    const [quantidadeProduto, setQuantidadeProduto] = useState(0);
+    const [selectedTipo, setSelectedTipo] = useState([]);
+    const servicos = [
+        { key: 1, label: "Corte" },
+        { key: 2, label: "Barba" },
+        { key: 3, label: "Combo" },
+    ];
     useEffect(() => {
         async function carregarToken() {
             setToken(await AsyncStorage.getItem("token"));
@@ -21,7 +31,22 @@ export default function PainelAdmin() {
 
         }
         carregarToken();
-    }, [token])
+    }, []);
+
+    useEffect(() => {
+        async function getProdutos() {
+            if (!token) return;
+            try {
+                const response = await fetch("https://n8n.punchmarketing.com.br/webhook/get_produtos");
+                const data = await response.json();
+                setProdutos(data.status === "ok" && data.produtos || []);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getProdutos();
+    }, [token, updateMyServices]);
+
     useEffect(() => {
         async function getUser() {
             if (!token) return;
@@ -65,7 +90,7 @@ export default function PainelAdmin() {
             }
         }
         getAllUsers()
-    }, [token])
+    }, [token]);
 
     async function deslogar() {
         await AsyncStorage.clear();
@@ -87,12 +112,42 @@ export default function PainelAdmin() {
             const data = await response.json();
             setUpdateMyServices(!updateMyServices);
             setMotivo("");
+            setMotivoVisible("");
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    async function criarProduto() {
+        if (!nomeProduto || !quantidadeProduto || !selectedTipo) return alert("Preencha os dados");
+        try {
+            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/criar_produto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "nome": nomeProduto, "tipo": selectedTipo.join(", "), "quantidade": quantidadeProduto }),
+            });
+            setNomeProduto("");
+            setQuantidadeProduto("");
+            setSelectedTipo("");
+            setUpdateMyServices(!updateMyServices);
+
         } catch (error) {
             console.log(error);
         }
     }
     if (!fontsLoaded) {
         return null;
+    }
+    async function excluirProdutos(id) {
+        try {
+            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/excluir_produto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "id": id }),
+            });
+            setUpdateMyServices(!updateMyServices);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     return (
@@ -124,7 +179,7 @@ export default function PainelAdmin() {
                                     <Text style={styles.txtagenda}>DATA: {item.data}</Text>
                                     <Text style={styles.txtagenda}>NÚMERO: {item.telefone}</Text>
                                     <Text style={styles.txtagenda}>PREÇO: R${item.preco}</Text>
-                                    {motivoVisible === item.id_cliente &&
+                                    {motivoVisible === `${item.id_cliente}_${item.data}` &&
                                         <TextInput
                                             style={styles.input}
                                             value={motivo}
@@ -135,7 +190,7 @@ export default function PainelAdmin() {
                                         />
                                     }
 
-                                    <TouchableOpacity style={styles.buttonCancel} onPress={() => desmarcar(item.data, item.id_cliente)}>
+                                    <TouchableOpacity style={styles.buttonCancel} onPress={() => desmarcar(item.data, `${item.id_cliente}_${item.data}`)}>
                                         <Text style={styles.buttonText}>DESMARCAR</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -146,6 +201,73 @@ export default function PainelAdmin() {
                             <Text style={styles.txtservicos}>NENHUM AGENDAMENTO</Text>
                         </View>
                 }
+                <View style={styles.servicos}>
+                    <Text style={styles.txtservicos}>PRODUTOS ESSENCIAIS</Text>
+                    <Text style={styles.txtservicos2}>ESTOQUE DE PRODUTOS ESSENCIAIS PARA SUA BARBEARIA</Text>
+
+                    {produtos.map((item, index) => (
+                        <View style={styles.myagenda1} key={index}>
+                            <Text style={styles.txttipo}>{item.nome.toUpperCase()}</Text>
+                            <Text style={styles.txtagenda}>SERVIÇO: {item.tipo.toUpperCase()}</Text>
+                            <Text style={styles.txtagenda}>QUANTIDADE: {item.quantidade}</Text>
+                            <TouchableOpacity style={styles.buttonCancel} onPress={() => excluirProdutos(item.id)}>
+                                <Text style={styles.buttonText}>EXCLUIR</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+
+                    <TouchableOpacity style={styles.button2} onPress={() => setProductVisible(!productVisible)}>
+                        <Text style={styles.buttonText2}>+</Text>
+                    </TouchableOpacity>
+                    {productVisible &&
+                        <>
+                            <TextInput
+                                style={styles.input}
+                                value={nomeProduto}
+                                onChangeText={setNomeProduto}
+                                placeholder="NOME DO PRODUTO"
+                                placeholderTextColor="black"
+                                autoCapitalize="none"
+                            />
+                            <TextInput
+                                style={styles.input}
+                                value={quantidadeProduto}
+                                onChangeText={setQuantidadeProduto}
+                                placeholder="QUANTIDADE EM ESTOQUE"
+                                placeholderTextColor="black"
+                                autoCapitalize="none"
+                                keyboardType="numeric"
+
+                            />
+                            <Text style={styles.txtservicos2}>SERVIÇO QUE NECESSITA DO PRODUTO</Text>
+                            <View style={{ flexDirection: "row", gap: 10 }}>
+                                {servicos.map((item, index) => {
+                                    const isSelected = selectedTipo.includes(item.label);
+                                    function toggleServico() {
+                                        if (isSelected) {
+                                            setSelectedTipo(prev => prev.filter(serv => serv !== item.label));
+                                        } else {
+                                            setSelectedTipo(prev => [...prev, item.label]);
+                                        }
+                                    };
+                                    return (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={isSelected ? styles.select : styles.option}
+                                            onPress={toggleServico}
+                                        >
+                                            <Text style={styles.txtservicos2}>{item.label.toUpperCase()}</Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
+                            <TouchableOpacity style={styles.button} onPress={criarProduto}>
+                                <Text style={styles.buttonText}>ADICIONAR</Text>
+                            </TouchableOpacity>
+                        </>
+                    }
+                </View>
             </View>
             <StatusBar style="auto" />
 
@@ -168,6 +290,20 @@ const styles = StyleSheet.create({
         gap: 5,
         flex: 1
     },
+    option: {
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: "row",
+        padding: 10,
+        width: '30%',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+    },
     input: {
         width: '100%',
         height: 50,
@@ -179,6 +315,22 @@ const styles = StyleSheet.create({
         borderColor: "black",
         borderWidth: 1,
         borderStyle: "solid",
+    },
+    select: {
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: "row",
+        padding: 10,
+        width: '30%',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+        borderColor: '#0170b9',
+        borderWidth: 3,
     },
     servicos: {
         backgroundColor: "white",
@@ -212,7 +364,7 @@ const styles = StyleSheet.create({
 
     },
     button: {
-        backgroundColor: 'rgba(108, 106, 106, 1)',
+        backgroundColor: '#0170B9',
         paddingVertical: 7,
         paddingHorizontal: 53,
         borderRadius: 10,
@@ -261,5 +413,19 @@ const styles = StyleSheet.create({
         marginTop: 10,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    button2: {
+        backgroundColor: '#0170B9',
+        paddingVertical: 5,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        marginTop: 10,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    buttonText2: {
+        color: 'white',
+        fontSize: 24,
+        fontFamily: 'BigShoulders_400Regular',
     },
 })
