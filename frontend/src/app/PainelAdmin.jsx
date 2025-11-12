@@ -19,10 +19,13 @@ export default function PainelAdmin() {
     const [productVisible, setProductVisible] = useState(false);
     const [quantidadeProduto, setQuantidadeProduto] = useState(0);
     const [selectedTipo, setSelectedTipo] = useState([]);
+    const [novoNomeProduto, setNovoNomeProduto] = useState("");
+    const [novaQuantidadeProduto, setNovaQuantidadeProduto] = useState("");
+    const [openEdit, setOpenEdit] = useState("");
     const servicos = [
-        { key: 1, label: "Corte" },
-        { key: 2, label: "Barba" },
-        { key: 3, label: "Combo" },
+        { key: 1, label: "CORTE DE CABELO" },
+        { key: 2, label: "BARBA" },
+        { key: 3, label: "CORTE E BARBA" },
     ];
     useEffect(() => {
         async function carregarToken() {
@@ -39,7 +42,7 @@ export default function PainelAdmin() {
             try {
                 const response = await fetch("https://n8n.punchmarketing.com.br/webhook/get_produtos");
                 const data = await response.json();
-                setProdutos(data.status === "ok" && data.produtos || []);
+                setProdutos(data.status === "ok" && data.produtos.reverse() || []);
             } catch (error) {
                 console.log(error);
             }
@@ -70,7 +73,7 @@ export default function PainelAdmin() {
             try {
                 const response = await fetch("https://n8n.punchmarketing.com.br/webhook/agendamentos");
                 const data = await response.json();
-                setAgendamentos(data.status === "ok" && data.agendamentos);
+                setAgendamentos(data.status === "ok" && data.agendamentos.reverse());
             } catch (error) {
                 console.log(error)
             }
@@ -149,7 +152,19 @@ export default function PainelAdmin() {
             console.log(error);
         }
     }
-
+    async function atualizarProdutos(id) {
+        try {
+            const response = await fetch('https://n8n.punchmarketing.com.br/webhook/atualizar_produto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "id": id, "nomeProduto": novoNomeProduto, "quantidadeProduto": novaQuantidadeProduto }),
+            });
+            setUpdateMyServices(!updateMyServices);
+            setOpenEdit(!openEdit)
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <ScrollView >
 
@@ -176,6 +191,7 @@ export default function PainelAdmin() {
                             {agendamentos.map((item, index) => (
                                 <View style={styles.myagenda1} key={index}>
                                     <Text style={styles.txttipo}>{allusers.find((i) => i.token === item.id_cliente)?.nome}</Text>
+                                    <Text style={styles.txtagenda}>SERVIÇO: {item.servico.toUpperCase()}</Text>
                                     <Text style={styles.txtagenda}>DATA: {item.data}</Text>
                                     <Text style={styles.txtagenda}>NÚMERO: {item.telefone}</Text>
                                     <Text style={styles.txtagenda}>PREÇO: R${item.preco}</Text>
@@ -207,17 +223,59 @@ export default function PainelAdmin() {
 
                     {produtos.map((item, index) => (
                         <View style={styles.myagenda1} key={index}>
-                            <Text style={styles.txttipo}>{item.nome.toUpperCase()}</Text>
-                            <Text style={styles.txtagenda}>SERVIÇO: {item.tipo.toUpperCase()}</Text>
-                            <Text style={styles.txtagenda}>QUANTIDADE: {item.quantidade}</Text>
-                            <TouchableOpacity style={styles.buttonCancel} onPress={() => excluirProdutos(item.id)}>
-                                <Text style={styles.buttonText}>EXCLUIR</Text>
-                            </TouchableOpacity>
+                            {openEdit === item.id ?
+                                <>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={novoNomeProduto}
+                                        onChangeText={setNovoNomeProduto}
+                                        placeholder="NOME PRODUTO :"
+                                        placeholderTextColor="black"
+                                    />
+                                    <Text style={styles.txtagenda}>SERVIÇO: {item.tipo.toUpperCase()}</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={novaQuantidadeProduto}
+                                        onChangeText={setNovaQuantidadeProduto}
+                                        placeholder="QUANTIDADE PRODUTO"
+                                        placeholderTextColor="black"
+                                    />
+                                </>
+
+                                :
+                                <>
+                                    <Text style={styles.txttipo}>{item.nome.toUpperCase()}</Text>
+                                    <Text style={styles.txtagenda}>SERVIÇO: {item.tipo.toUpperCase()}</Text>
+                                    <Text style={styles.txtagenda}>QUANTIDADE: {item.quantidade}</Text>
+                                </>
+
+
+                            }
+
+                            <View style={{ flexDirection: "row", gap: 10 }}>
+                                <TouchableOpacity style={styles.buttonCancel} onPress={() => excluirProdutos(item.id)}>
+                                    <Text style={styles.buttonText}>EXCLUIR</Text>
+                                </TouchableOpacity>
+                                {
+                                    openEdit === item.id ?
+
+                                        <TouchableOpacity style={styles.button} onPress={() => atualizarProdutos(item.id)}>
+                                            <Text style={styles.buttonText}>SALVAR</Text>
+                                        </TouchableOpacity>
+
+                                        :
+                                        <TouchableOpacity style={styles.button} onPress={() => { setOpenEdit(item.id); setNovoNomeProduto(item.nome.toUpperCase()); setNovaQuantidadeProduto(item.quantidade) }}>
+                                            <Text style={styles.buttonText}>EDITAR</Text>
+                                        </TouchableOpacity>
+                                }
+
+                            </View>
+
                         </View>
                     ))}
 
                     <TouchableOpacity style={styles.button2} onPress={() => setProductVisible(!productVisible)}>
-                        <Text style={styles.buttonText2}>+</Text>
+                        <Text style={styles.buttonText2}>{productVisible ? "-" : "+"}</Text>
                     </TouchableOpacity>
                     {productVisible &&
                         <>
@@ -289,6 +347,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 5,
         flex: 1
+    },
+    input: {
+        width: '100%',
+        height: 50,
+        backgroundColor: '#fff',
+        borderRadius: 9,
+        paddingHorizontal: 16,
+        fontSize: 16,
+        fontFamily: 'BigShoulders_400Regular',
     },
     option: {
         backgroundColor: 'white',

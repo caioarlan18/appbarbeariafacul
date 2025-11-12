@@ -13,11 +13,10 @@ LocaleConfig.locales['pt-br'] = ptBR;
 LocaleConfig.defaultLocale = 'pt-br';
 
 export default function Agendar() {
-    const { preservice } = useLocalSearchParams();
     const [token, setToken] = useState('');
     const [cargo, setCargo] = useState('');
     const [user, setUser] = useState([]);
-    const [service, setService] = useState(preservice || '');
+    const [service, setService] = useState('');
     const [step, setStep] = useState(1);
     const [date, setDate] = useState('');
     const [telefone, setTelefone] = useState('');
@@ -27,6 +26,7 @@ export default function Agendar() {
     const [myservices, setMyservices] = useState([]);
     const isSyncing = useRef(false);
     const [updateMyServices, setUpdateMyServices] = useState(false);
+    const [produtos, setProdutos] = useState([]);
     useEffect(() => {
         initDB();
     }, []);
@@ -67,7 +67,21 @@ export default function Agendar() {
 
         }
         getMyServices();
-    }, [token, updateMyServices])
+    }, [token, updateMyServices]);
+
+    useEffect(() => {
+        async function getProdutos() {
+            if (!token) return;
+            try {
+                const response = await fetch("https://n8n.punchmarketing.com.br/webhook/get_produtos");
+                const data = await response.json();
+                setProdutos(data.status === "ok" && data.produtos.reverse() || []);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getProdutos();
+    }, [token, updateMyServices]);
 
     async function sincronizarPendentes() {
         try {
@@ -154,6 +168,11 @@ export default function Agendar() {
         '16:00', '16:30',
         '17:00'
     ];
+    const servicos = [
+        { key: 1, label: "CORTE DE CABELO", price: "R$35,00", image: require("../../images/tesourinhapreto.png") },
+        { key: 2, label: "BARBA", price: "R$30,00", image: require("../../images/barba.png") },
+        { key: 3, label: "CORTE E BARBA", price: "R$50,00", image: require("../../images/combo.png") },
+    ];
 
     const [fontsLoaded] = useFonts({
         BigShoulders_400Regular,
@@ -177,9 +196,9 @@ export default function Agendar() {
             horario,
             telefone,
             price:
-                service === 'corte' ? 35 :
-                    service === 'barba' ? 30 :
-                        service === 'combo' ? 50 : 0,
+                service === 'CORTE DE CABELO' ? 35 :
+                    service === 'BARBA' ? 30 :
+                        service === 'CORTE E BARBA' ? 50 : 0,
         };
 
         const state = await NetInfo.fetch();
@@ -282,18 +301,15 @@ export default function Agendar() {
                     {step === 1 ? (
                         <>
                             <Text style={styles.txtservicos}>ESCOLHA O SERVIÇO</Text>
-                            <TouchableOpacity style={service === 'corte' ? styles.select : styles.option} onPress={() => setService('corte')}>
-                                <Image source={require('../../images/tesourinhapreto.png')} style={styles.img} resizeMode='contain' />
-                                <Text style={styles.txtservicos2}>CORTE DE CABELO - R$35,00</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={service === 'barba' ? styles.select : styles.option} onPress={() => setService('barba')}>
-                                <Image source={require('../../images/barba.png')} style={styles.img} resizeMode='contain' />
-                                <Text style={styles.txtservicos2}>BARBA - R$30,00</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={service === 'combo' ? styles.select : styles.option} onPress={() => setService('combo')}>
-                                <Image source={require('../../images/combo.png')} style={styles.img} resizeMode='contain' />
-                                <Text style={styles.txtservicos2}>CORTE E BARBA - R$50,00</Text>
-                            </TouchableOpacity>
+                            {servicos.map((item, index) => {
+                                const foraDeEstoque = produtos.some(i => i.tipo.includes(item.label) && i.quantidade === 0);
+                                return (
+                                    <TouchableOpacity key={index} style={service === item.label && !foraDeEstoque ? styles.select : foraDeEstoque ? styles.dis : styles.option} onPress={() => { if (foraDeEstoque) return alert("Serviço indisponível por falta de estoque"); setService(item.label) }} >
+                                        <Image source={item.image} style={styles.img} resizeMode='contain' />
+                                        <Text style={styles.txtservicos2}>{item.label} - {item.price} </Text>
+                                    </TouchableOpacity>
+                                )
+                            })}
                         </>
                     ) : step === 2 ? (
                         <>
@@ -556,5 +572,18 @@ const styles = StyleSheet.create({
         fontFamily: 'BigShoulders_400Regular',
         fontSize: 18,
         textAlign: 'center',
-    }
+    },
+    dis: {
+        backgroundColor: '#e7e7e7',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+        width: '70%',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 6,
+    },
 });
