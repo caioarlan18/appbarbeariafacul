@@ -103,8 +103,8 @@ export default function PainelAdmin() {
         BigShoulders_400Regular,
         BigShoulders_700Bold,
     });
-    async function desmarcar(dia, id) {
-        if (motivoVisible !== id) return setMotivoVisible(id);
+    async function desmarcar(dia, id, idunico) {
+        if (motivoVisible !== idunico) return setMotivoVisible(idunico);
         if (!motivo) return alert("Dê uma satisfação para o cliente");
         try {
             const response = await fetch('https://n8n.punchmarketing.com.br/webhook/desmarcar', {
@@ -206,7 +206,7 @@ export default function PainelAdmin() {
                                         />
                                     }
 
-                                    <TouchableOpacity style={styles.buttonCancel} onPress={() => desmarcar(item.data, `${item.id_cliente}_${item.data}`)}>
+                                    <TouchableOpacity style={styles.buttonCancel} onPress={() => desmarcar(item.data, item.id_cliente, `${item.id_cliente}_${item.data}`)}>
                                         <Text style={styles.buttonText}>DESMARCAR</Text>
                                     </TouchableOpacity>
                                 </View>
