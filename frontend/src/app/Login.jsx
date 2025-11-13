@@ -29,7 +29,9 @@ export default function Login() {
             if (data.status === "ok") {
                 await AsyncStorage.setItem("token", data.token);
                 await AsyncStorage.setItem("cargo", data.cargo);
-            };
+            } else {
+                return alert(data.mensagem)
+            }
             setEmail("");
             setSenha("");
             router.navigate("/")
